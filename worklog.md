@@ -2,15 +2,122 @@ Plan:
 
 - analyze the data source (page structure, api, etc.)
 - create a repository
-- check out scrappy
+- check out scrapy
 - update the plan
 
 ---
 
 Plan:
 
-- basic scrapper, pagination
+- basic scraper, pagination
+- try debug tools
 - find all the required data on the page
+- email questions
+- plan update
+
+```text
+https://www.fara.gov/quick-search.html -> "Active Foreign Principals" link
+https://efile.fara.gov/pls/apex/f?p=171:130:0::NO:RP,130:P130_DATERANGE:N
+There is a form on the page.
+
+Pagination:
+javascript:gReport.navigate.paginate('pgR_min_row=16max_rows=15rows_fetched=15')
+https://efile.fara.gov/i/libraries/apex/minified/widget.interactiveReport.min.js?v=4.2.5.00.08
+
+2rd page: pgR_min_row=16max_rows=15rows_fetched=15
+3nd page: pgR_min_row=31max_rows=15rows_fetched=15
+```
+Trying to figure out pagination logic out of the js...
+
+On next click:
+```
+POST:https://efile.fara.gov/pls/apex/wwv_flow.show
+p_request=APXWGT& (looks like a const)
+p_instance=15673377578171& (wwv_flow form)
+p_flow_id=171& (wwv_flow form)
+p_flow_step_id=130& (wwv_flow form)
+p_widget_num_return=15& ("pgR_min_row=16max_rows=15rows_fetched=15".split("max_rows=")[1].split("rows_fetched")[0])
+p_widget_name=worksheet& (looks like const)
+p_widget_mod=ACTION& (looks like const for the request)
+p_widget_action=PAGE& (looks like const for the request)
+p_widget_action_mod=pgR_min_row%3D16max_rows%3D15rows_fetched%3D15& (pgR_min_row=16max_rows=15rows_fetched=15)
+x01=80340213897823017& ($v("apexir_WORKSHEET_ID"), div#apexir_WORKSHEET -> input#apexir_WORKSHEET_ID)
+x02=80341508791823021 (that.report_id or "0", div#apexir_WORKSHEET -> input#apexir_REPORT_ID)
+```
+
+`https://efile.fara.gov/pls/apex/wwv_flow.show` response a bit different from `https://efile.fara.gov/pls/apex/f`, figuring out how to parse it ...
+Looks like nothing changes from page to page except `pgR_min_row=16max_rows=15rows_fetched=15`.
+
+Got "The requested URL was rejected. Please consult with your administrator." for the second page. Will get back to this later.
+Next: find all the necessary data in the rows.
+
+Fields:
+```text
+"url": "https://efile.fara.gov/pls/apex/f?p=171:200:::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:2310,Exhibit%20AB,BAHAMAS",
+"country": "BAHAMAS",
+"state": null,
+"reg_num": "2310",
+"address": "Nassau",
+"foreign_principal": "Bahamas Ministry of Tourism",
+"date" :ISODate("1972-01-27T00:00:00Z"),
+"registrant": "Bahamas Tourist Office",
+"exhibit_url": "http://www.fara.gov/docs/2310-Exhibit-AB-19720101-DBBMB702.pdf"
+```
+
+Row example `//*[@id="apexir_DATA_PANEL"]/table/tbody/tr[1]/td/table/tbody/tr[3]`:
+```html
+<tr class="even">
+    <td headers="LINK BREAK_COUNTRY_NAME_1"><a href="f?p=171:200:0::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:5945,Exhibit%20AB,AFGHANISTAN"><img src="/i/view.gif" alt="View Documents"></a></td>
+    <td align="left" headers="FP_NAME BREAK_COUNTRY_NAME_1">Transformation and Continuity, Ajmal Ghani</td>
+    <td align="left" headers="FP_REG_DATE BREAK_COUNTRY_NAME_1">05/05/2014</td>
+    <td align="left" headers="ADDRESS_1 BREAK_COUNTRY_NAME_1">House #3 MRRD Road<br>Darul Aman<br>Kabul&nbsp;&nbsp;</td>
+    <td align="left" headers="STATE BREAK_COUNTRY_NAME_1"></td>
+    <td align="left" headers="REGISTRANT_NAME BREAK_COUNTRY_NAME_1">Fenton Communications</td>
+    <td align="center" headers="REG_NUMBER BREAK_COUNTRY_NAME_1">5945</td>
+    <td align="left" headers="REG_DATE BREAK_COUNTRY_NAME_1">06/26/2009</td>
+</tr>
+```
+
+```text
+response.selector.css('div#apexir_DATA_PANEL table.apexir_WORKSHEET_DATA').xpath('./tr[td]')
+
+row.xpath('td[contains(@headers,"LINK")]/a/@href').extract_first()
+u'f?p=171:200:0::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:5945,Exhibit%20AB,AFGHANISTAN'
+
+row.xpath('td[contains(@headers,"LINK")]/@headers').extract_first().split(' ')[1]
+u'BREAK_COUNTRY_NAME_1'
+
+row.xpath('td[contains(@headers,"STATE")]/text()').extract_first()
+u''
+
+response.selector.css("th#BREAK_COUNTRY_NAME_1 > span::text").extract_first()
+u'AFGHANISTAN'
+
+row.xpath('td[contains(@headers,"REG_NUMBER")]/text()').extract_first()
+u'5945'
+
+'\n'.join(row.xpath('td[contains(@headers,"ADDRESS_1")]/text()').extract())
+u'House #3 MRRD Road\nDarul Aman\nKabul\xa0\xa0'
+
+row.xpath('td[contains(@headers,"FP_NAME")]/text()').extract_first()
+u'Transformation and Continuity, Ajmal Ghani'
+
+row.xpath('td[contains(@headers,"REG_DATE")]/text()').extract_first()
+u'05/05/2014'
+
+row.xpath('td[contains(@headers,"REGISTRANT_NAME")]/text()').extract_first()
+u'Fenton Communications'
+
+exhibit_url: click on "view" in a row left side. 
+```
+
+---
+
+Plan:
+
+- extract exhibit url
+- fix pagination
+- create an Item
 - email questions
 - plan update
 
@@ -26,3 +133,11 @@ Future:
 - export (use stdout?) or just use -o, create an egg?
 - review settings, what I need to modify?
 - do I need to save state?
+- compare output data to what I see in the browser
+- address line and date format
+- add domain for url
+
+Questions:
+
+- address lines
+- date format
