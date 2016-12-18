@@ -121,6 +121,60 @@ Plan:
 - email questions
 - plan update
 
+Fixed url, added `/pls/apex/`.
+
+I believe it's possible to have a few documents on a Documents page, so I'll be choosing the latest one (ordered by Date Stamped, desc).
+
+```python
+# https://efile.fara.gov/pls/apex/f?p=171:200:0::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:6065,Exhibit%20AB,AFGHANISTAN
+response.selector.css('div#apexir_DATA_PANEL table.apexir_WORKSHEET_DATA').xpath('tr/td[contains(@headers, "DOCLINK")]/a/@href').extract_first()
+```
+
+The second page request body and headers:
+```text
+In [2]: request.body
+Out[2]: 'p_flow_id=171&p_widget_mod=ACTION&x01=80340213897823017&p_instance=14535582550857&p_request=APXWGT&p_widget_num_return=15&x02=80341508791823021&p_widget_name=worksheet&p_flow_step_id=130&p_widget_action_mod=pgR_min_row%253D16max_rows%253D15rows_fetched%253D15'
+
+In [3]: request.headers
+Out[3]: 
+{'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+ 'Accept-Encoding': 'gzip,deflate',
+ 'Accept-Language': 'en',
+ 'Content-Type': 'application/x-www-form-urlencoded',
+ 'Cookie': 'ORA_WWV_APP_171=ORA_WWV-mJaRpb2yA8lyG5BwQ37PgLSY; TS013766ce=016889935cbd588b97d5142b582e1c5dd9f3cbd2aed66b6a6669eaeacef4f96c512f2463d2d25297ddbb7961aa6989558591328925',
+ 'Referer': 'https://efile.fara.gov/pls/apex/f?p=171:130:0::NO:RP,130:P130_DATERANGE:N',
+ 'User-Agent': 'Scrapy/1.2.2 (+http://scrapy.org)'}
+
+In [4]: response.body
+Out[4]: '<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 1132525161098826485</body></html>'
+
+In [5]: request.url
+Out[5]: 'https://efile.fara.gov/pls/apex/wwv_flow.show'
+```
+Comparing to what I have in browser ...
+
+Found differences:
+```
+p_instance=14535582550857
+p_instance=7401450318019
+p_widget_action_mod=pgR_min_row%253D16max_rows%253D15rows_fetched%253D15
+p_widget_action_mod=pgR_min_row%3D16max_rows%3D15rows_fetched%3D15
+<empty>
+p_widget_action=PAGE
+```
+
+Pagination stop:
+```text
+response.selector.css('div#apexir_DATA_PANEL table tr td.pagination > span > a > img[title="Next"]').extract()
+Out[30]: [u'<img src="/i/jtfunexe.gif" title="Next" alt="Next" align="absmiddle">']
+
+or page is empty.
+```
+
+Now scraper returns 483 records instead of 511.
+
+5x100 and 11 rows was processed, maybe duplicates?
+
 ---
 
 Future:
@@ -136,8 +190,10 @@ Future:
 - compare output data to what I see in the browser
 - address line and date format
 - add domain for url
+- pep8 and check for memory leaks
 
 Questions:
 
 - address lines
 - date format
+- if many documents - choose the latest (https://efile.fara.gov/pls/apex/f?p=171:200:0::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:1032,Exhibit%20AB,AUSTRALIA)
