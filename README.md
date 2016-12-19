@@ -8,3 +8,10 @@ Scrap Foreign Principals from [https://www.fara.gov/quick-search.html](https://w
 virtualenv .env --no-site-packages -p /usr/local/bin/python2.7
 source .env/bin/activate
 ```
+
+## Tests
+
+Running unittests:
+```bash
+python -m unittest fprincipals.tests
+```

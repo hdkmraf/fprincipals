@@ -9,8 +9,6 @@ __all__ = ('ForeignPrincipalsSpider',)
 
 class Paginator(object):
 
-    ROWS_PER_PAGE = 100
-
     p_request = 'APXWGT'
     p_widget_name = 'worksheet'
     p_widget_mod = 'ACTION'
@@ -22,8 +20,12 @@ class Paginator(object):
     x01 = None
     x02 = None
 
-    def __init__(self, p_instance, p_flow_id, p_flow_step_id, x01, x02):
+    _page = 1
+    _rows_per_page = 100
+
+    def __init__(self, p_instance, p_flow_id, p_flow_step_id, x01, x02, rows_per_page=100):
         self._page = 1
+        self._rows_per_page = rows_per_page
         self.p_instance = p_instance
         self.p_flow_id = p_flow_id
         self.p_flow_step_id = p_flow_step_id
@@ -32,8 +34,8 @@ class Paginator(object):
 
     def _get_page(self, page):
         action_mod = 'pgR_min_row={min_row}max_rows={rows}rows_fetched={rows}'.format(
-            rows=self.ROWS_PER_PAGE,
-            min_row=(page - 1) * self.ROWS_PER_PAGE + 1
+            rows=self._rows_per_page,
+            min_row=(page - 1) * self._rows_per_page + 1
         )
 
         return {
@@ -41,7 +43,7 @@ class Paginator(object):
             'p_widget_name': self.p_widget_name,
             'p_widget_mod': self.p_widget_mod,
             'p_widget_action': self.p_widget_action,
-            'p_widget_num_return': str(self.ROWS_PER_PAGE),
+            'p_widget_num_return': str(self._rows_per_page),
             'p_widget_action_mod': action_mod,
             'p_instance': self.p_instance,
             'p_flow_id': self.p_flow_id,

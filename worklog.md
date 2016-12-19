@@ -243,7 +243,7 @@ https://efile.fara.gov/pls/apex/f?p=171:200:33456255399644::NO:RP,200:P200_REG_N
 must be:
 https://efile.fara.gov/pls/apex/f?p=171:200:::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:2310,Exhibit%20AB,BAHAMAS
 ```
-There is no `33456255399644`, it changes time to time and identifies session or something, I think we shouldn't have in the links.
+There is no `33456255399644`, it changes time to time and identifies something session related, I think we shouldn't have in in the links.
 
 ---
 
