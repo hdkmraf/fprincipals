@@ -129,11 +129,16 @@ class ForeignPrincipalsSpider(scrapy.Spider):
 
             rows_count += 1
 
-        if (
+        has_next_page = (
             # There is a "Next" button on the page
-            len(response.selector.css('div#apexir_DATA_PANEL table tr td.pagination > span > a > img[title="Next"]').extract()) == 1
-            and rows_count > 0
-        ):
+            len(
+                response.selector.css(
+                    'div#apexir_DATA_PANEL table tr td.pagination > span > a > img[title="Next"]'
+                ).extract()
+            ) == 1 and rows_count > 0
+        )
+
+        if has_next_page:
 
             yield scrapy.http.FormRequest(
                 self.WWV_FLOW_SHOW_URL,
@@ -146,7 +151,13 @@ class ForeignPrincipalsSpider(scrapy.Spider):
 
         found = []
 
-        for document in response.selector.css('div#apexir_DATA_PANEL table.apexir_WORKSHEET_DATA').xpath('tr/td[contains(@headers, "DOCLINK")]/a'):
+        documents = response.selector.css(
+            'div#apexir_DATA_PANEL table.apexir_WORKSHEET_DATA'
+        ).xpath(
+            'tr/td[contains(@headers, "DOCLINK")]/a'
+        )
+
+        for document in documents:
 
             found.append((
                 SequenceMatcher(

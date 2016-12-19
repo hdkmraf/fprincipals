@@ -273,12 +273,18 @@ Plan:
 - prettify the code, pep8
 - plan update
 
+Tests - done, refining settings ...
+
+Cookies are required.
+
+For memory leaks, I haven't done anything suspicious in the code and the amount of data is relatively small so I think I can omit this. 
+
 ---
 
-Future:
+Plan:
 
-- do I need to save a state?
-- parse pages in parallel?
-- how to know that something was changed (a new principal was added)
+- add to the readme: state, parallel requests and something was changed while parsing
 - readme update (running the scraper, output format, multiple documents)
 - zip code and output and egg
+- review the task requirements, compare authput to what we have in a browser
+- send results for review
