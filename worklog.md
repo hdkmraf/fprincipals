@@ -249,7 +249,7 @@ There is no `33456255399644`, it changes time to time and identifies something s
 
 Plan:
 
-- item fields serializers (date, etc.)
+- item input/output processors (date, etc.)
 - ItemPipeline (stdout)
 - try to use contracts
 - plan update

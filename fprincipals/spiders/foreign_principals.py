@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import scrapy
-
 from difflib import SequenceMatcher
 
-from ..items import ForeignPrincipalItem
+import scrapy
+
+from ..items import ForeignPrincipalItemLoader
 
 
 __all__ = ('ForeignPrincipalsSpider',)
@@ -109,18 +109,18 @@ class ForeignPrincipalsSpider(scrapy.Spider):
             relative_url_parts = row.xpath('td[contains(@headers,"LINK")]/a/@href').extract_first().split(':')
             row_url = response.urljoin(':'.join(relative_url_parts[:2] + [''] + relative_url_parts[3:]))
 
-            row_item = ForeignPrincipalItem(
-                url=row_url,
-                country=response.selector.css("th#BREAK_COUNTRY_NAME_1 > span::text").extract_first(),
-                state=row.xpath('td[contains(@headers,"STATE")]/text()').extract_first(),
-                reg_num=row.xpath('td[contains(@headers,"REG_NUMBER")]/text()').extract_first(),
-                address='\n'.join(row.xpath('td[contains(@headers,"ADDRESS_1")]/text()').extract()),
-                foreign_principal=row.xpath('td[contains(@headers,"FP_NAME")]/text()').extract_first(),
-                date=row.xpath('td[contains(@headers,"REG_DATE")]/text()').extract_first(),
-                registrant=row.xpath('td[contains(@headers,"REGISTRANT_NAME")]/text()').extract_first(),
-            )
+            row_data = {
+                'url': row_url,
+                'country': response.selector.css("th#BREAK_COUNTRY_NAME_1 > span::text").extract_first(),
+                'state': row.xpath('td[contains(@headers,"STATE")]/text()').extract_first(),
+                'reg_num': row.xpath('td[contains(@headers,"REG_NUMBER")]/text()').extract_first(),
+                'address': row.xpath('td[contains(@headers,"ADDRESS_1")]/text()').extract(),
+                'foreign_principal': row.xpath('td[contains(@headers,"FP_NAME")]/text()').extract_first(),
+                'date': row.xpath('td[contains(@headers,"REG_DATE")]/text()').extract_first(),
+                'registrant': row.xpath('td[contains(@headers,"REGISTRANT_NAME")]/text()').extract_first()
+            }
 
-            yield scrapy.Request(row_url, callback=self.parse_exhibit_url, meta={'row': row_item}, dont_filter=True)
+            yield scrapy.Request(row_url, callback=self.parse_exhibit_url, meta={'row': row_data}, dont_filter=True)
 
             rows_count += 1
 
@@ -138,7 +138,7 @@ class ForeignPrincipalsSpider(scrapy.Spider):
             )
 
     def parse_exhibit_url(self, response):
-        row_item = response.meta['row']
+        row_data = response.meta['row']
 
         found = []
 
@@ -147,15 +147,18 @@ class ForeignPrincipalsSpider(scrapy.Spider):
             found.append((
                 SequenceMatcher(
                     None,
-                    row_item['foreign_principal'].strip().lower(),
+                    row_data['foreign_principal'].strip().lower(),
                     document.xpath('./span/text()').extract_first().strip().lower()
                 ).ratio() * 1000 - len(found),  # similarity (0..1000) - position
                 document.xpath('@href').extract_first()
             ))
 
+        item_loader = ForeignPrincipalItemLoader()
+        item_loader.add_value(None, row_data)
+
         if found:
             # find the most relevant and recent url
             found.sort(key=lambda i: i[0], reverse=True)
-            row_item['exhibit_url'] = found[0][1]
+            item_loader.add_value('exhibit_url', found[0][1])
 
-        yield row_item
+        yield item_loader.load_item()
