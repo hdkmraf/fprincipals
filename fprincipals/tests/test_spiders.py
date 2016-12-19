@@ -76,6 +76,10 @@ class ForeignPrincipalsPaginationTestCase(unittest.TestCase):
         self.assertEqual(page['p_widget_action_mod'], 'pgR_min_row=1max_rows=100rows_fetched=100')
 
     def test_exhibit_url(self):
+        """
+        Choose the most relevant and then the most recent file.
+        """
+
         page_html = """<html><body><div id="apexir_DATA_PANEL">
 <table summary="">
 <tr><td><table summary="" cellpadding="0" cellspacing="0" border="0" class="apexir_WORKSHEET_DATA" id="90738522271518332">

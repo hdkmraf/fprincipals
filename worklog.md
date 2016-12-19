@@ -247,21 +247,25 @@ There is no `33456255399644`, it changes time to time and identifies something s
 
 ---
 
+Plan:
+
+- item fields serializers (date, etc.)
+- ItemPipeline (stdout)
+- try to use contracts
+- plan update
+
+---
+
 Future:
 
-- unittest scrapers (contracts)?
-- write a basic scraper, get necessary data
-- how to run
-- declare an Item
+- any more tests required?
 - use ItemPipeline to save data (requires activation)?
 - export (use stdout?) or just use -o, create an egg?
 - review settings, what I need to modify?
 - do I need to save state?
-- compare output data to what I see in the browser
-- address line and date format
-- add domain for url
 - pep8 and check for memory leaks
-- parse pages in parallel
+- parse pages in parallel?
 - how to know that something was changed (a new principal was added)
 - readme update (running the scraper, output format, multiple documents)
 - test 171:200:::NO
+- zip code and output
