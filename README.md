@@ -7,6 +7,19 @@ Scrap Foreign Principals from [https://www.fara.gov/quick-search.html](https://w
 ```bash
 virtualenv .env --no-site-packages -p /usr/local/bin/python2.7
 source .env/bin/activate
+pip install -r requirements.txt
+```
+
+## Run
+
+Storage backend == 'stdout:': 
+```bash
+scrapy crawl foreign_principals > output.json
+```
+
+and `-o` option is available:
+```bash
+scrapy crawl foreign_principals -o output.json
 ```
 
 ## Tests

@@ -15,6 +15,9 @@ SPIDER_MODULES = ['fprincipals.spiders']
 NEWSPIDER_MODULE = 'fprincipals.spiders'
 
 
+FEED_URI = 'stdout:'
+FEED_FORMAT = 'json'
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'fprincipals (+http://www.yourdomain.com)'
 

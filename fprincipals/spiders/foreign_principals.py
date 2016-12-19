@@ -128,7 +128,6 @@ class ForeignPrincipalsSpider(scrapy.Spider):
             # There is a "Next" button on the page
             len(response.selector.css('div#apexir_DATA_PANEL table tr td.pagination > span > a > img[title="Next"]').extract()) == 1
             and rows_count > 0
-            and False
         ):
 
             yield scrapy.http.FormRequest(
