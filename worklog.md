@@ -289,3 +289,4 @@ Plan:
 - review the task requirements, compare output to what we have in a browser
 - send results for review
 
+State is not presented in output is it is null: fix test, fix item loader.

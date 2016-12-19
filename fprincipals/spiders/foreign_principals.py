@@ -79,7 +79,6 @@ class ForeignPrincipalsSpider(scrapy.Spider):
 
     WWV_FLOW_SHOW_URL = 'https://efile.fara.gov/pls/apex/wwv_flow.show'
     PLS_APEX_URL = 'https://efile.fara.gov/pls/apex/'
-    ROWS_PER_PAGE = 15
 
     paginator = None
 

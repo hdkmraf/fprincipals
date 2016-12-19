@@ -35,6 +35,7 @@ class ForeignPrincipalsItemLoadersTestCase(unittest.TestCase):
                 'foreign_principal': u'Ministry of Foreign Affairs Kingdom of Bahrain',
                 'reg_num': u'5839',
                 'registrant': u'Sorini, Samet & Associates, LLC',
+                'state': None,
                 'url': u'https://efile.fara.gov/pls/apex/f?p=171:200:::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:5839,Exhibit%20AB,BAHRAIN'
              }
         )
