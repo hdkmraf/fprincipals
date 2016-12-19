@@ -277,7 +277,7 @@ Plan:
 
 Future:
 
-- do I need to save state?
+- do I need to save a state?
 - parse pages in parallel?
 - how to know that something was changed (a new principal was added)
 - readme update (running the scraper, output format, multiple documents)

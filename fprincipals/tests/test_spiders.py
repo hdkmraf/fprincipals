@@ -1,8 +1,11 @@
 import unittest
 
-from scrapy.selector import Selector
+from six.moves.urllib.parse import urljoin
+
+import scrapy
 
 from ..spiders.foreign_principals import Paginator, ForeignPrincipalsSpider
+from .utils import rel
 
 
 __all__ = ('ForeignPrincipalsPaginationTestCase',)
@@ -11,9 +14,13 @@ __all__ = ('ForeignPrincipalsPaginationTestCase',)
 class FakeResponse(object):
 
     meta = {}
+    url = ""
+
+    def urljoin(self, url):
+        return urljoin(self.url, url)
 
     def __init__(self, html):
-        self.selector = Selector(text=html)
+        self.selector = scrapy.Selector(text=html)
 
 
 class ForeignPrincipalsPaginationTestCase(unittest.TestCase):
@@ -114,3 +121,61 @@ class ForeignPrincipalsPaginationTestCase(unittest.TestCase):
 
             for data in spider.parse_exhibit_url(response=response):
                 self.assertEqual(data['exhibit_url'], url)
+
+    def test_parse_page(self):
+        """
+        Check right data was chosen.
+        Check pagination stop if there is no Next button.
+        """
+
+        with open(rel('data/foreign_principals_table.html'), 'r') as f:
+           page_html = f.read()
+
+        response = FakeResponse(html=page_html)
+
+        spider = ForeignPrincipalsSpider()
+        spider.paginator = Paginator(p_instance="", p_flow_id="", p_flow_step_id="", x01="", x02="")
+
+        data_requests = []
+        next_page_requests = []
+
+        for data in spider.parse_page(response):
+
+            if isinstance(data, scrapy.http.Request):
+                if data.method == 'GET':
+                    data_requests.append(data)
+                elif data.method == 'POST':
+                    next_page_requests.append(data)
+
+        self.assertEqual(len(data_requests), 2)
+        self.assertEqual(len(next_page_requests), 1)
+
+        self.assertEqual(
+            data_requests[0].meta['row'],
+            {
+                'reg_num': u'6065',
+                'state': u'DC',
+                'date': u'07/28/2013',
+                'address': [u'1319 18th Street, NW', u'Washington\xa0\xa020036'],
+                'url': u'f?p=171:200:::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:6065,Exhibit%20AB,AZERBAIJAN',
+                'country': u'AZERBAIJAN',
+                'foreign_principal': u'SOCAR USA, subsidiary of State Oil Company of Azerbaijan Republic (SOCAR)',
+                'registrant': u'Roberti + White, LLC'
+            }
+        )
+
+        # test stop pagination
+
+        last_page_html = page_html.replace('Next', '')
+
+        response = FakeResponse(html=last_page_html)
+
+        next_page_requests = []
+
+        for data in spider.parse_page(response):
+
+            if isinstance(data, scrapy.http.Request):
+                if data.method == 'POST':
+                    next_page_requests.append(data)
+
+        self.assertFalse(next_page_requests)
