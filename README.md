@@ -73,7 +73,7 @@ Scrapy stats:
     'scheduler/dequeued/memory': 519,
     'scheduler/enqueued': 519,
     'scheduler/enqueued/memory': 519,
-    'start_time': datetime.datetime(2016, 12, 19, 15, 36, 43, 387261)}
+    'start_time': datetime.datetime(2016, 12, 19, 15, 36, 43, 387261)
 }
 ```
 
