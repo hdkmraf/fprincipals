@@ -267,20 +267,18 @@ Ok, works, but I think they are useless for the project.
 
 Plan:
 
-
+- unittest data extraction, pagination stop and 171:200:::NO
+- review settings, what I need to modify?
+- check for memory leaks
+- prettify the code, pep8
+- plan update
 
 ---
 
 Future:
 
-- any more tests required?
-- use ItemPipeline to save data (requires activation)?
-- export (use stdout?) or just use -o, create an egg?
-- review settings, what I need to modify?
 - do I need to save state?
-- pep8 and check for memory leaks
 - parse pages in parallel?
 - how to know that something was changed (a new principal was added)
 - readme update (running the scraper, output format, multiple documents)
-- test 171:200:::NO
-- zip code and output
+- zip code and output and egg
