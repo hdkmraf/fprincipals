@@ -177,6 +177,76 @@ Now scraper returns 483 records instead of 511.
 
 ---
 
+Plan:
+
+- why I get 483 results instead of 511?
+- unittest for Paginator
+- create an Item
+- plan update
+
+```text
+'downloader/response_status_count/200': 490,
+'downloader/response_status_count/302': 1,
+'downloader/response_status_count/404': 1,
+'dupefilter/filtered': 28,
+```
+
+`511 - 28 == 483`, looking into filters ...
+
+```
+Back to exhibit_url. Here we see two the same document title but different Date Stamped:
+https://efile.fara.gov/pls/apex/f?p=171:200:0::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:1032,Exhibit%20AB,AUSTRALIA
+So IMHO we can choose the newest one.
+
+Another case:
+https://efile.fara.gov/pls/apex/f?p=171:200:5087138684357::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:5839,Exhibit%20AB,BAHRAIN
+
+There are two different rows contain the same url:
+
+{'reg_num': u'5839', 'state': None, 'date': u'05/26/2011', 'address': u'P.O. Box 547\nGovernment Road\nManama\xa0\xa0', 'url': u'https://efile.fara.gov/pls/apex/f?p=171:200:5087138684357::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:5839,Exhibit%20AB,BAHRAIN', 'country': u'AFGHANISTAN', 'foreign_principal': u'Ministry of Foreign Affairs Kingdom of Bahrain', 'registrant': u'Sorini, Samet & Associates, LLC'}
+
+{'reg_num': u'5839', 'state': None, 'date': u'01/20/2015', 'address': u'7th, 8th, 12th, 13th and 16th floor Seef Tower P.O. Box 11299\nManama\xa0\xa0', 'url': u'https://efile.fara.gov/pls/apex/f?p=171:200:5087138684357::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:5839,Exhibit%20AB,BAHRAIN', 'country': u'AFGHANISTAN', 'foreign_principal': u'Economic Development Board, Kingdom of Bahrain', 'registrant': u'Sorini, Samet & Associates, LLC'}
+
+
+exhibit_url must be different for them:
+https://www.fara.gov/docs/5839-Exhibit-AB-20110526-21.pdf (Ministry of Foreign Affairs Kingdom of Bahrain)
+https://www.fara.gov/docs/5839-Exhibit-AB-20150120-29.pdf (Economic Development Board, Kingdom of Bahrain)
+
+So we need to choice a document by title (take newest one).
+```
+
+Disabling duplicate filter for exhibit_url request and improving selector here ...
+
+Sometimes title check doesn't work because of errata, for instance:
+```text
+Transformation and Continuity
+Transformatin and Continuity
+```
+
+I'll extract all the exhibit_urls available on a page and then find one looks the most similar to foreign_principal (if there are more than one document).
+
+Some urls returns an error page:
+```json
+{"reg_num": "6082", "country": "AFGHANISTAN", "foreign_principal": "Government of Cote d'Ivoire", "url": "https://efile.fara.gov/pls/apex/f?p=171:200:11117225469911::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:6082,Exhibit%20AB,COTE%20D%27IVOIRE%20(IVORY%20COAST)", "state": null, "address": "Office of the President,\nRepublic of Cote d'Ivoire\nAbidjan\u00a0\u00a0", "date": "12/21/2011", "registrant": "LTL Strategies", "exhibit_url": null},
+```
+
+And some returns an empty table:
+```json
+https://efile.fara.gov/pls/apex/f?p=171:200:4418453445662::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:3492,Exhibit%20AB,CONGO%20(KINSHASA)%20(ZAIRE)
+```
+
+Found that my urls are wrong:
+```
+my:
+https://efile.fara.gov/pls/apex/f?p=171:200:33456255399644::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:5839,Exhibit%20AB,BAHRAIN
+
+must be:
+https://efile.fara.gov/pls/apex/f?p=171:200:::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:2310,Exhibit%20AB,BAHAMAS
+```
+There is no `33456255399644`, it changes time to time and identifies session or something, I think we shouldn't have in the links.
+
+---
+
 Future:
 
 - unittest scrapers (contracts)?
@@ -191,9 +261,7 @@ Future:
 - address line and date format
 - add domain for url
 - pep8 and check for memory leaks
-
-Questions:
-
-- address lines
-- date format
-- if many documents - choose the latest (https://efile.fara.gov/pls/apex/f?p=171:200:0::NO:RP,200:P200_REG_NUMBER,P200_DOC_TYPE,P200_COUNTRY:1032,Exhibit%20AB,AUSTRALIA)
+- parse pages in parallel
+- how to know that something was changed (a new principal was added)
+- readme update (running the scraper, output format, multiple documents)
+- test 171:200:::NO

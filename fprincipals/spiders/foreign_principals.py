@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
 
+from difflib import SequenceMatcher
+
 
 __all__ = ('ForeignPrincipalsSpider',)
 
@@ -68,7 +70,7 @@ class ForeignPrincipalsSpider(scrapy.Spider):
     name = 'foreign_principals'
 
     # https://www.fara.gov/quick-search.html -> "Active Foreign Principals" link
-    start_urls = ('https://efile.fara.gov/pls/apex/f?p=171:130:0::NO:RP,130:P130_DATERANGE:N',)
+    start_urls = ('https://efile.fara.gov/pls/apex/f?p=171:130:::NO:RP,130:P130_DATERANGE:N',)
     allowed_domains = ('efile.fara.gov',)
 
     WWV_FLOW_SHOW_URL = 'https://efile.fara.gov/pls/apex/wwv_flow.show'
@@ -99,7 +101,9 @@ class ForeignPrincipalsSpider(scrapy.Spider):
 
         for row in response.selector.css('div#apexir_DATA_PANEL table.apexir_WORKSHEET_DATA').xpath('./tr[td]'):
 
-            row_url = response.urljoin(row.xpath('td[contains(@headers,"LINK")]/a/@href').extract_first())
+            # remove "0" in "...171:200:0::..."
+            relative_url_parts = row.xpath('td[contains(@headers,"LINK")]/a/@href').extract_first().split(':')
+            row_url = response.urljoin(':'.join(relative_url_parts[:2] + [''] + relative_url_parts[3:]))
 
             row_data = {
                 'url': row_url,
@@ -112,7 +116,7 @@ class ForeignPrincipalsSpider(scrapy.Spider):
                 'registrant': row.xpath('td[contains(@headers,"REGISTRANT_NAME")]/text()').extract_first(),
             }
 
-            yield scrapy.Request(row_data['url'], callback=self.parse_exhibit_url, meta={'row': row_data})
+            yield scrapy.Request(row_url, callback=self.parse_exhibit_url, meta={'row': row_data}, dont_filter=True)
 
             rows_count += 1
 
@@ -131,6 +135,24 @@ class ForeignPrincipalsSpider(scrapy.Spider):
     def parse_exhibit_url(self, response):
         row_data = response.meta['row']
 
-        row_data['exhibit_url'] = response.selector.css('div#apexir_DATA_PANEL table.apexir_WORKSHEET_DATA').xpath('tr/td[contains(@headers, "DOCLINK")]/a/@href').extract_first()
+        found = []
+
+        for document in response.selector.css('div#apexir_DATA_PANEL table.apexir_WORKSHEET_DATA').xpath('tr/td[contains(@headers, "DOCLINK")]/a'):
+
+            found.append((
+                SequenceMatcher(
+                    None,
+                    row_data['foreign_principal'].strip().lower(),
+                    document.xpath('./span/text()').extract_first().strip().lower()
+                ).ratio() * 1000 - len(found),  # similarity (0..1000) - position
+                document.xpath('@href').extract_first()
+            ))
+
+        if found:
+            # find the most relevant and recent url
+            found.sort(key=lambda i: i[0], reverse=True)
+            row_data['exhibit_url'] = found[0][1]
+        else:
+            row_data['exhibit_url'] = None
 
         yield row_data
