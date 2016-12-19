@@ -28,3 +28,8 @@ Running unittests:
 ```bash
 python -m unittest fprincipals.tests
 ```
+
+Contracts:
+```bash
+scrapy check foreign_principals
+```

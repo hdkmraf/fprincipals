@@ -254,6 +254,21 @@ Plan:
 - try to use contracts
 - plan update
 
+For contracts:
+
+https://doc.scrapy.org/en/latest/topics/contracts.html
+https://doc.scrapy.org/en/latest/topics/commands.html#check
+
+Trying to use ...
+
+Ok, works, but I think they are useless for the project.
+
+---
+
+Plan:
+
+
+
 ---
 
 Future:

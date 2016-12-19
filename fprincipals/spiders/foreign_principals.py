@@ -84,6 +84,11 @@ class ForeignPrincipalsSpider(scrapy.Spider):
     paginator = None
 
     def parse(self, response):
+        """
+        @url https://efile.fara.gov/pls/apex/f?p=171:130:::NO:RP,130:P130_DATERANGE:N
+        @returns items 0 0
+        @returns requests 1 1
+        """
 
         self.paginator = Paginator(
             p_instance=response.selector.css('form#wwvFlowForm input[name=p_instance]::attr(value)').extract_first(),
