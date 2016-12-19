@@ -286,5 +286,6 @@ Plan:
 - add to the readme: state, parallel requests and something was changed while parsing
 - readme update (running the scraper, output format, multiple documents)
 - zip code and output and egg
-- review the task requirements, compare authput to what we have in a browser
+- review the task requirements, compare output to what we have in a browser
 - send results for review
+
