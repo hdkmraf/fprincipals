@@ -62,7 +62,6 @@ class ForeignPrincipalItemLoader(scrapy.loader.ItemLoader):
         """
         item = self.item
         for field_name in tuple(self._values):
-            value = self.get_output_value(field_name)
-            item[field_name] = value
+            item[field_name] = self.get_output_value(field_name)
 
         return item
