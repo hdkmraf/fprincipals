@@ -2,27 +2,10 @@
 import datetime
 import scrapy
 
-from scrapy.loader.processors import TakeFirst, Join, Compose
+from scrapy.loader.processors import TakeFirst, Join, Compose, MapCompose
 
 
 __all__ = ('ForeignPrincipalItem', 'ForeignPrincipalItemLoader')
-
-
-def date_decode_processor(value):
-    """
-    :param value: date str
-    :return: datetime object
-    """
-
-    return datetime.datetime.strptime(value, '%m/%d/%Y')
-
-
-def date_encode_processor(value):
-    """
-    :param value: datetime object
-    :return: date iso string
-    """
-    return value.isoformat()
 
 
 class IdentityOrNone(object):
@@ -43,8 +26,8 @@ class ForeignPrincipalItem(scrapy.Item):
     )
     foreign_principal = scrapy.Field()
     date = scrapy.Field(
-        input_processor=Compose(TakeFirst(), date_decode_processor),
-        output_processor=Compose(TakeFirst(), date_encode_processor)
+        input_processor=MapCompose(lambda i: datetime.datetime.strptime(i, '%m/%d/%Y')),
+        output_processor=Compose(TakeFirst(), lambda i: i.isoformat())
     )
     registrant = scrapy.Field()
     exhibit_url = scrapy.Field()
